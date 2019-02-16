@@ -1,4 +1,8 @@
 /* eslint-disable linebreak-style */
+const debug = require('debug')('njstuya');
+
+const name = 'njstuya';
+debug('booting %s', name);
 const request = require('request');
 const login = require('./.credentials.json');
 /** Credentials are the Tuya/Smart_Live
@@ -37,12 +41,14 @@ async function main() {
         }, (err, httpResponse, body) => {
           let tokenJSON;
           if (!err && httpResponse) {
-            console.log(body);
+            debug(body);
             tokenJSON = JSON.parse(body);
             resolve(tokenJSON);
           }
-          if (err && tokenJSON && tokenJSON.expires_in > 8600 && tokenJSON.access_token.length > 10) {
-            console.log(`Your token apears to have resolved but there was an error in the process ${err}`);
+          if (err && !tokenJSON
+              && tokenJSON.expires_in > 8600
+              && tokenJSON.access_token.length > 10) {
+            debug(`Warning: Your token was resolved while ignored ERROR: ${err} `);
             resolve(tokenJSON);
           } else if (err) reject(err);
         });
@@ -52,6 +58,6 @@ should let you log into to the Tuya or Smart_Life apps: ${error}`);
       }
     })) { tokenCredentials = result; }
   await loginToCloud(settings, credentials);
-  console.log(tokenCredentials);
+  debug(tokenCredentials);
 }
 main();

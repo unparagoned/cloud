@@ -4,12 +4,14 @@
   "description": "A NodeJS wrapper for Tuya's cloud API",
   "main": "index.js",
   "dependencies": {
-    "debug": "^3.1.0",
+    "debug": "^3.2.6",
     "delay": "^2.0.0",
     "got": "^8.3.1",
     "is": "^3.2.1",
     "md5": "^2.2.1",
     "randomatic": "^3.0.0",
+    "request": "^2.88.0",
+    "requests": "^0.2.2",
     "sort-keys-recursive": "^2.0.1"
   },
   "engines": {
