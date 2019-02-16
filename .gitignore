@@ -1,6 +1,9 @@
 # API keys
 keys.json
 
+# Login email and pass
+.credentials.json
+
 # Development test file
 dev.js
 
