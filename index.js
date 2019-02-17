@@ -94,7 +94,7 @@ function TuyaCloud(options) {
     this.uriroot = 'https://px1.tuyaeu.com/homeassistant';
   } else if (options.region === 'EU') {
     this.region = 'EU';
-    this.uriroot = 'https://px1.tuyaeu.com/homeassistant';
+    this.uriroot = 'http://px1.tuyaeu.com/homeassistant';
     debug(`correct if ${this.uriroot}`);
   } else {
     throw new Error('Bad region identifier.');
@@ -247,12 +247,14 @@ TuyaCloud.prototype.request = async function (options) {
 TuyaCloud.prototype.getAppToken = async options => new Promise(async (resolve, reject) => {
   // Requests seems to format the data in a way that tuyapi likes
   try {
-    request.post({ url: options.uri, form: options.data },
+    debug(options);
+
+    request(options,
       (err, response, body) => {
         let tokenJSON;
         if (!err && response.statusCode == 200) {
           debug(body);
-          tokenJSON = JSON.parse(body);
+          tokenJSON = ('json' in options) ? body : JSON.parse(body);
           resolve(tokenJSON);
         }
         if (err && !tokenJSON
@@ -267,7 +269,7 @@ TuyaCloud.prototype.getAppToken = async options => new Promise(async (resolve, r
     throw new Error(`Error logging in and getting token. The check you are using the email and password \
   you use to log into to the Tuya or Smart_Life apps: ${error}`);
   }
-}).then((value) => { this.tokenCredentials = value; debug(`resolving tokens ${value}`); return Promise.resolve(value); })
+}).then((value) => { this.tokenCredentials = value; debug(`resolving tokens ${JSON.stringify(value)}`); return Promise.resolve(value); })
   .catch(reason => debug(reason));
 /*
     const apiResult = await this.request({
@@ -292,22 +294,23 @@ TuyaCloud.prototype.getAppToken = async options => new Promise(async (resolve, r
 
 
 /**
-* Helper to log in a user.
+* Helper to register a new user. If user already exists, it instead attempts to log in.
 * @param {Object} options
 * register options
 * @param {String} options.email
-* user's email
+* email to register
 * @param {String} options.password
-* user's password
+* password for new user
 * @example
-* api.login({email: 'example@example.com',
-             password: 'example-password'}).then(sid => console.log('Session ID: ', sid))
+* api.register({email: 'example@example.com',
+                password: 'example-password'})
+                .then(sid => console.log('Session ID: ', sid))
 * @returns {Promise<String>} A Promise that contains the session ID
 */
-TuyaCloud.prototype.login = async function (options) {
+TuyaCloud.prototype.register = async function (options) {
   try {
     const apiResult = await this.request({
-      action: 'tuya.m.user.email.password.login',
+      action: 'tuya.m.user.email.register',
       data: {
         countryCode: this.region,
         email: options.email,
@@ -315,9 +318,14 @@ TuyaCloud.prototype.login = async function (options) {
       },
       requiresSID: false,
     });
+
     this.sid = apiResult.sid;
     return this.sid;
   } catch (err) {
+    if (err.code === 'USER_NAME_IS_EXIST') {
+      return this.login(options);
+    }
+
     throw err;
   }
 };
