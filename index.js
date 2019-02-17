@@ -244,41 +244,31 @@ TuyaCloud.prototype.request = async function (options) {
                 .then(tokenDetails => console.log('Token Details: ', tokenDetails))
 * @returns {Promise<String>} A Promise that contains token details
 */
-TuyaCloud.prototype.getAppToken = async settings => new Promise(async (resolve, reject) => {
-  let credentials;
+TuyaCloud.prototype.getAppToken = async options => new Promise(async (resolve, reject) => {
   // Requests seems to format the data in a way that tuyapi likes
-  async function loginToCloud(options,
-    result = new Promise((resolve, reject) => {
-      try {
-        request.post({
-          url: options.uri,
-          form: options.data,
-        }, (err, response, body) => {
-          let tokenJSON;
-          if (!err && response.statusCode == 200) {
-            debug(body);
-            tokenJSON = JSON.parse(body);
-            resolve(tokenJSON);
-          }
-          if (err && !tokenJSON
+  try {
+    request.post({ url: options.uri, form: options.data },
+      (err, response, body) => {
+        let tokenJSON;
+        if (!err && response.statusCode == 200) {
+          debug(body);
+          tokenJSON = JSON.parse(body);
+          resolve(tokenJSON);
+        }
+        if (err && !tokenJSON
                 && tokenJSON.expires_in > 8600
                 && tokenJSON.access_token.length > 10) {
-            debug(`Warning: Your token was resolved while ignored ERROR: ${err} `);
-            resolve(tokenJSON);
-          } else if (err) reject(err);
-        });
-      } catch (error) {
-        throw new Error(`Error logging in and getting token. The check you are using the email and password \
+          debug(`Warning: Your token was resolved while ignored ERROR: ${err} `);
+          resolve(tokenJSON);
+        } else if (err) reject(err);
+      });
+  } catch (error) {
+    reject(error);
+    throw new Error(`Error logging in and getting token. The check you are using the email and password \
   you use to log into to the Tuya or Smart_Life apps: ${error}`);
-      }
-    })) {
-    result.then((value) => { this.tokenCredentials = value; resolve(value); })
-      .catch(reason => reject(reason));
   }
-  await loginToCloud(settings, credentials);
-  debug(this.tokenCredentials);
-  return this.tokenCredentials;
-})
+}).then((value) => { this.tokenCredentials = value; debug(`resolving tokens ${value}`); return Promise.resolve(value); })
+  .catch(reason => debug(reason));
 /*
     const apiResult = await this.request({
       action: 'tuya.m.user.email.register',
@@ -299,7 +289,7 @@ TuyaCloud.prototype.getAppToken = async settings => new Promise(async (resolve, 
 
     throw err;
   } */
-;
+
 
 /**
 * Helper to log in a user.
