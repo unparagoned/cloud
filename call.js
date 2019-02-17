@@ -1,17 +1,13 @@
-/* eslint-disable linebreak-style */
 const debug = require('debug')('njstuya');
 
 const name = 'njstuya';
 debug('booting %s', name);
 const request = require('request');
-const login = require('./.credentials.json');
-/** Credentials are the Tuya/Smart_Live
- * Credentials used to log into the app
- * { "email" : "email@yahoo.com",
-  "pass": "password" } */
+const login = require('./keys.json');
+
 let tokenCredentials = {};
 //  Country Code is your international dialiing code
-const country = 44;
+const country = '44';
 
 // Either 'tuya' or 'smart_life'. There may be others.
 const biz = 'smart_life';
@@ -20,15 +16,15 @@ const biz = 'smart_life';
 const uri = 'https://px1.tuyaeu.com/homeassistant/auth.do';
 
 const data = {
-  userName: login.email,
-  password: login.pass,
+  userName: login.userName,
+  password: login.password,
   countryCode: country,
   bizType: biz,
   from: 'tuya',
 };
-
 const settings = { uri, data };
-
+debug(uri);
+debug(data);
 async function main() {
   let credentials;
   // Requests seems to format the data in a way that tuyapi likes
@@ -53,8 +49,8 @@ async function main() {
           } else if (err) reject(err);
         });
       } catch (error) {
-        throw new Error(`Error logging in and getting token. The email and password \
-should let you log into to the Tuya or Smart_Life apps: ${error}`);
+        throw new Error(`Error logging in and getting token. The check you are using the email and password \
+you use to log into to the Tuya or Smart_Life apps: ${error}`);
       }
     })) { tokenCredentials = result; }
   await loginToCloud(settings, credentials);

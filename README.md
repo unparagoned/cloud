@@ -31,7 +31,9 @@ api.register({email: 'example@example.com', password: 'example-password'}).then(
 ```javascript
 {
   "key": "your-api-key",
-  "secret": "your-api-secret"
+  "secret": "your-api-secret",
+  "email" : "email@yahoo.com",
+  "pass": "password"
 }
 ```
 3. Create a file called `dev.js` as a playground. Since `dev.js` is in `.gitignore`, it won't be committed.
